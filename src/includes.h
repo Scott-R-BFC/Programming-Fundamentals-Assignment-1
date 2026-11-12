@@ -1,6 +1,6 @@
-#ifndef INCLUDES
-#define INCLUDES
+#pragma once
 
 #include <iostream>
+#include <vector>
+#include <string>
 
-#endif
