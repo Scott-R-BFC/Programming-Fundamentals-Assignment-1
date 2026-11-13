@@ -76,10 +76,12 @@ impl Game {
 
     // output
     pub fn print(&self) {
-        println!("Title\t\t:\t{}", self.title.as_deref().unwrap_or(EMPTY_GAME_ATTRIBUTE_STR));
-        println!("Genre\t\t:\t{}", self.genre.as_deref().unwrap_or(EMPTY_GAME_ATTRIBUTE_STR));
-        println!("Platform\t:\t{}", self.platform.as_deref().unwrap_or(EMPTY_GAME_ATTRIBUTE_STR));
-        print!("Personal Rating\t:\t");
+        println!("0\tTitle\t\t:\t{}", self.title.as_deref().unwrap_or(EMPTY_GAME_ATTRIBUTE_STR));
+        println!("1\tGenre\t\t:\t{}", self.genre.as_deref().unwrap_or(EMPTY_GAME_ATTRIBUTE_STR));
+        println!("2\tPublisher\t:\t{}", self.publisher.as_deref().unwrap_or(EMPTY_GAME_ATTRIBUTE_STR));
+        println!("3\tDeveloper\t:\t{}", self.developer.as_deref().unwrap_or(EMPTY_GAME_ATTRIBUTE_STR));
+        println!("4\tPlatform\t:\t{}", self.platform.as_deref().unwrap_or(EMPTY_GAME_ATTRIBUTE_STR));
+        print!("5\tPersonal Rating\t:\t");
 
         match self.personal_rating {
             Some(r) => {
