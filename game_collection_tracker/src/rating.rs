@@ -3,6 +3,7 @@
 // Clone defines creation of a copy with rating_var.clone();
 // Copy gives copy semantics instead of move semantics
 // PartialEq and PartialOrd define equality and comparison operators
+/// f32 limited between 0.0 and 10.0
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Rating(f32);
 

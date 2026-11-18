@@ -4,37 +4,40 @@ use crate::rating::Rating;
 
 use std::error::Error;
 
+// constant definitions
 const ABORT_COMMAND: &str = "abort!";
 const ALL_COMMAND: &str = "all!";
 const MAX_INPUT_ATTEMPTS: usize = 3;
 
-enum Operation {
-    Exit,
-    Immutable(fn(&GameCollectionTracker) -> Result<(), Box<dyn Error>>),
-    Mutable(fn(&mut GameCollectionTracker) -> Result<(), Box<dyn Error>>),
+/// result of input function which can provide some value, no value or cause the calling function to
+/// abort operation
+enum Input<T> {
+    Value(Option<T>),
+    Abort,
 }
 
-struct OperationData {
-    shortcut: &'static str,
-    description: &'static str,
-    operation: Operation,
-}
-
+/// types of function which provide an input associated with a `Game` attribute
 enum InputFunction {
     String(fn(&str) -> Result<Input<String>, Box<dyn Error>>),
     Rating(fn(&str) -> Result<Input<Rating>, Box<dyn Error>>),
 }
 
+/// types of `GameCollection` method which update a `Game`'s attribute at a given index in the
+/// collection
 enum UpdateFunction {
     String(fn(&mut GameCollection, usize, Option<String>) -> Result<(), Box<dyn Error>>),
     Rating(fn(&mut GameCollection, usize, Option<Rating>) -> Result<(), Box<dyn Error>>),
 }
 
+/// types of `GameCollection` method which get all games in the collection associated with a given
+/// attribute
 enum GetGamesWithAttributeFunction {
     String(for<'a> fn(&'a GameCollection, &str) -> Option<Vec<&'a Game>>),
     Rating(for<'a> fn(&'a GameCollection, std::ops::Range<Rating>) -> Option<Vec<&'a Game>>),
 }
 
+/// contains data describing a `Game` attribute and its associated functions for inputting, updating
+/// and retrieving `Game`s with that matching attribute from a collection
 struct AttributeData {
     name: &'static str,
     input_function: InputFunction,
@@ -42,6 +45,7 @@ struct AttributeData {
     get_games_function: GetGamesWithAttributeFunction,
 }
 
+/// contains data describing attributes which can be updated and viewed in the `menu_loop`
 const ATTRIBUTES: &[AttributeData] = &[
     AttributeData {
         name: "title",
@@ -81,6 +85,21 @@ const ATTRIBUTES: &[AttributeData] = &[
     },
 ];
 
+/// types of method to be called on the `GameCollectionTracker` in the `menu_loop`
+enum Operation {
+    Exit,
+    Immutable(fn(&GameCollectionTracker) -> Result<(), Box<dyn Error>>),
+    Mutable(fn(&mut GameCollectionTracker) -> Result<(), Box<dyn Error>>),
+}
+
+/// contains data describing an operation which can be selected in the `menu_loop`
+struct OperationData {
+    shortcut: &'static str,
+    description: &'static str,
+    operation: Operation,
+}
+
+/// contains data describing operations which can be selected in the `menu_loop`
 const OPERATIONS: &[OperationData] = &[
     OperationData {
         shortcut: "q",
@@ -129,16 +148,15 @@ const OPERATIONS: &[OperationData] = &[
     },
 ];
 
-enum Input<T> {
-    Value(Option<T>),
-    Abort,
-}
-
+/// create the effect of a cleared console with an ANSI escape sequences
+/// clear console & move cursor to start
 fn clear_console() {
     print!("\x1B[2J");
     print!("\x1b[1;1H");
 }
 
+/// read `stdin` into a throwaway `String` to prevent clearing console before user is ready to
+/// continue
 fn await_return() -> Result<(), Box<dyn Error>> {
     println!("");
     println!("Press Return to Continue.");
@@ -151,6 +169,10 @@ fn input_string(prompt_str: &str) -> Result<Input<String>, Box<dyn Error>> {
 
     print!("{}", prompt_str);
 
+    // output contents of buffer to console
+    // stdout is automatically buffered on `\n`
+    // however using `print!` instead of `println!` (which inserts a `\n` and flushes the buffer)
+    // allows the input to be on the same line as the prompt
     std::io::Write::flush(&mut std::io::stdout()).map_err(|e| format!("Input aborted. Failed to flush terminal buffer. {e}"))?;
 
     std::io::stdin()
@@ -169,6 +191,10 @@ fn input_string(prompt_str: &str) -> Result<Input<String>, Box<dyn Error>> {
     Ok(Input::Value(Some(out_string)))
 }
 
+/// attempts to convert value from `input_string()` to `Rating`
+/// until conversion fails a number of times greater than `MAX_INPUT_ATTEMPTS`
+/// or `ABORT_COMMAND` is entered
+/// in which case `Input::Abort` is returned
 fn input_rating(prompt_str: &str) -> Result<Input<Rating>, Box<dyn Error>> {
     let mut attempt_counter: usize = 0;
 
@@ -192,6 +218,10 @@ fn input_rating(prompt_str: &str) -> Result<Input<Rating>, Box<dyn Error>> {
     Ok(Input::Abort)
 }
 
+/// attempts to convert value from `input_string()` to `usize` within a given range
+/// until conversion fails a number of times greater than `MAX_INPUT_ATTEMPTS`
+/// or `ABORT_COMMAND` is entered
+/// in which case `Input::Abort` is returned
 fn input_usize_in_range(prompt_str: &str, range: std::ops::Range<usize>) -> Result<Input<usize>, Box<dyn Error>> {
     let mut attempt_counter: usize = 0;
 
@@ -222,10 +252,14 @@ fn print_abort_operation() {
     println!("Aborting Operation");
 }
 
+/// contains a `GameCollection`
 pub struct GameCollectionTracker {
     game_collection: GameCollection,
 }
 
+/// provides methods for the following:
+/// - constructing new `GameCollectionTracker`
+/// - selecting data for `Operations` selected in `main_loop`
 impl GameCollectionTracker {
     // constructor
     pub fn new() -> GameCollectionTracker {
@@ -235,7 +269,11 @@ impl GameCollectionTracker {
     }
 
     // input collection data
-    fn input_select_game(&self) -> Result<Option<usize>, Box<dyn Error>> {
+    /// prompts user to select an index associated with a `Game` until either
+    /// - successfully selected index
+    /// - unsucessfully selected index a number of times greater than `MAX_INPUT_ATTEMPTS`
+    /// - a `std::io` error occurs when inputting the index to be selected
+    fn input_select_game_index(&self) -> Result<Option<usize>, Box<dyn Error>> {
         let mut select_game_prompt_count = 0;
 
         let n_games = self.game_collection.len();
@@ -265,6 +303,10 @@ impl GameCollectionTracker {
         }
     }
 
+    /// prompts user to select a `Game` attribute until either
+    /// - successfully selected `Game` attribute
+    /// - unsucessfully selected `Game` attribute a number of times greater than `MAX_INPUT_ATTEMPTS`
+    /// - a `std::io` error occurs when inputting the attribute to be selected
     fn input_select_attribute(game: Option<(&GameCollection, usize)>) -> Result<Option<String>, Box<dyn Error>> {
         let mut select_attribute_prompt_count: usize = 0;
 
@@ -298,6 +340,10 @@ impl GameCollectionTracker {
         }
     }
 
+    /// prompts user to select an `Operation` until either
+    /// - successfully selected an `Operation`
+    /// - unsuccessfully selected an `Operation` a number of times greater than `MAX_INPUT_ATTEMPTS`
+    /// - a `std::io` error occurs when inputting the `Operation` to be selected
     fn input_select_operation(&self) -> Result<String, Box<dyn Error>> {
         self.print_menu();
         println!("Select Operation.");
@@ -312,6 +358,11 @@ impl GameCollectionTracker {
     }
 
     // update collection data
+    /// prompts user to enter a value for each of the `Game` attributes to be added to the
+    /// `GameCollection` until either
+    /// - all attribute values successfully entered
+    /// - the `ABORT_COMMAND` is entered
+    /// - a `std::io` error occurs when inputting an attribute value
     pub fn add_game(&mut self) -> Result<(), Box<dyn Error>> {
         println!("");
         println!("Entering game details:");
@@ -367,10 +418,14 @@ impl GameCollectionTracker {
         Ok(())
     }
 
+    /// prompts user to select a `Game` in the `GameCollection`
+    /// then prompts user to select a `Game` attribute
+    /// then prompts user to input a new value for the selected attribute
+    /// then updates the selected attribute
     pub fn update_game(&mut self) -> Result<(), Box<dyn Error>> {
         println!("");
         println!("Updating Game Attribute");
-        let game_index: usize = match self.input_select_game()? {
+        let game_index: usize = match self.input_select_game_index()? {
             Some(v) => v,
             None => {
                 println!("Game update aborted.");
@@ -408,7 +463,7 @@ impl GameCollectionTracker {
                         },
                         _ => {
                             print_abort_operation();
-                            return Err("Input function other than string input called to update string attribute".into());
+                            return Err("Only InputFunction::String should be called to update string attribute".into());
                         }
                     },
                 )?,
@@ -425,7 +480,7 @@ impl GameCollectionTracker {
                         },
                         _ => {
                             print_abort_operation();
-                            return Err("Input function other than string input called to update string attribute".into());
+                            return Err("Only InputFunction::Rating should be called to update rating attribute".into());
                         }
                     },
                 )?,
@@ -435,10 +490,12 @@ impl GameCollectionTracker {
         Ok(())
     }
 
+    /// prompts user to select a `Game` in the `GameCollection`
+    /// then removes the game from the collection if it exists
     pub fn remove_game(&mut self) -> Result<(), Box<dyn Error>> {
         println!("");
         println!("Removing Game");
-        let game_index: usize = match self.input_select_game()? {
+        let game_index: usize = match self.input_select_game_index()? {
             Some(v) => v,
             None => {
                 print_abort_operation();
@@ -451,6 +508,7 @@ impl GameCollectionTracker {
         Ok(())
     }
 
+    /// prompts user to input a new name for the `GameCollection`
     pub fn update_collection_name(&mut self) -> Result<(), Box<dyn Error>> {
         self.view_overview()?;
 
@@ -469,6 +527,7 @@ impl GameCollectionTracker {
         Ok(())
     }
 
+    /// prompts user to input a new owner for the `GameCollection`
     pub fn update_collection_owner(&mut self) -> Result<(), Box<dyn Error>> {
         self.view_overview()?;
 
@@ -488,6 +547,10 @@ impl GameCollectionTracker {
     }
 
     // io loop
+    /// prompts user to select an `Operation` to be performed
+    /// informs the user if their input doesn't select an `Operation`
+    /// leads to the end of the program if `Operation::Exit` is selected
+    /// otherwise performs the Operation
     pub fn menu_loop(&mut self) -> Result<(), Box<dyn Error>> {
         'main: loop {
             println!("");
@@ -528,6 +591,7 @@ impl GameCollectionTracker {
     }
 
     // output
+    /// outputs the number, shortcut and description of each `Operation`
     fn print_menu(&self) {
         println!("Game Collection Tracker Menu");
         println!("-------------------------------------");
@@ -538,6 +602,7 @@ impl GameCollectionTracker {
         }
     }
 
+    /// outputs the `GameCollection` overvieew
     pub fn view_overview(&self) -> Result<(), Box<dyn Error>> {
         println!("");
         self.game_collection.print_overview();
@@ -545,6 +610,7 @@ impl GameCollectionTracker {
         Ok(())
     }
 
+    /// outputs each `Game` in the `GameCollection`
     pub fn view_all_games(&self) -> Result<(), Box<dyn Error>> {
         println!("");
         self.game_collection.print_games();
@@ -552,6 +618,11 @@ impl GameCollectionTracker {
         Ok(())
     }
 
+    /// prompts user to select an attribute
+    /// then prompts user to input an attribute value(s) to select `Game`'s who's attributes match the
+    /// inputted value(s)
+    /// outputs each `Game` in the `GameCollection` where the `Game` has attributes matching the
+    /// user's selection
     pub fn view_games_with_attribute(&self) -> Result<(), Box<dyn Error>> {
         println!("Viewing Games with Selected Attribute");
 
@@ -564,7 +635,7 @@ impl GameCollectionTracker {
         };
 
         let mut valid_games: Vec<&Game> = Vec::new();
-        
+
         if input == ALL_COMMAND {
             self.view_all_games()?;
             return Ok(());
@@ -586,31 +657,33 @@ impl GameCollectionTracker {
                     };
 
                     get_games(&self.game_collection, &value)
-                },
+                }
                 GetGamesWithAttributeFunction::Rating(get_games) => {
                     let lower_bound = match input_rating("Enter Rating Lower Bound: ")? {
                         Input::Value(Some(v)) => v,
                         _ => {
                             print_abort_operation();
                             return Ok(());
-                        },
+                        }
                     };
 
-                    let upper_bound = match input_rating("Enter Rating Lower Bound: ")? {
+                    let upper_bound = match input_rating("Enter Rating Upper Bound: ")? {
                         Input::Value(Some(v)) => v,
                         _ => {
                             print_abort_operation();
                             return Ok(());
-                        },
+                        }
                     };
 
                     get_games(&self.game_collection, lower_bound..upper_bound)
-                },
+                }
             };
 
             match games_with_attribute {
                 Some(games) => valid_games.extend(games),
-                None => { println!("No Games with Matching Attribute"); }
+                None => {
+                    println!("No Games with Matching Attribute");
+                }
             }
         }
 

@@ -2,6 +2,8 @@ use crate::rating::Rating;
 
 const EMPTY_GAME_ATTRIBUTE_STR: &str = "not specified";
 
+/// Stores game record information
+/// Member variables are optional
 pub struct Game {
     title: Option<String>,
     genre: Option<String>,
@@ -11,8 +13,15 @@ pub struct Game {
     personal_rating: Option<Rating>,
 }
 
+/// Implements methods for the `Game` class
+/// Includes methods for:
+/// - constructing `Game` objects
+/// - getting `Game` object member variables
+/// - setting `Game` object member variables
+/// - outputting `Game` object data
 impl Game {
-    // constructor
+    // constructors
+    /// returns `Game` object with provided attributes
     pub fn new(title: Option<String>, genre: Option<String>, publisher: Option<String>, developer: Option<String>, platform: Option<String>, personal_rating: Option<Rating>) -> Game {
         Game {
             title,
@@ -23,6 +32,7 @@ impl Game {
             personal_rating,
         }
     }
+    /// returns `Game` object with all attributes None
     pub fn empty() -> Game {
         Game {
             title: None,
@@ -75,6 +85,7 @@ impl Game {
     }
 
     // output
+    /// outputs `Game` object's attribute's value or a constant default `EMPTY_GAME_ATTRIBUTE_STR`
     pub fn print(&self) {
         println!("0\tTitle\t\t:\t{}", self.title.as_deref().unwrap_or(EMPTY_GAME_ATTRIBUTE_STR));
         println!("1\tGenre\t\t:\t{}", self.genre.as_deref().unwrap_or(EMPTY_GAME_ATTRIBUTE_STR));
@@ -93,6 +104,7 @@ impl Game {
         }
     }
 
+    /// outputs attributes of empty `Game` object
     pub fn print_empty() {
         println!("0\tTitle\t\t:\t{}", EMPTY_GAME_ATTRIBUTE_STR);
         println!("1\tGenre\t\t:\t{}", EMPTY_GAME_ATTRIBUTE_STR);

@@ -3,14 +3,27 @@ use crate::rating::Rating;
 
 use std::error::Error;
 
+/// stores game collection data
 pub struct GameCollection {
     name: Option<String>,
     owner: Option<String>,
     games: Vec<Game>,
 }
 
+/// provides methods for the following:
+/// - constructing new `GameCollection`
+/// - viewing `GameCollection` data
+/// - updating `GameCollection` data
+///     - changing specific `Game`'s attributes
+///     - removing specific `Game`
+///     - adding new `Game` (to end or at specific index in collection)
+/// - outputting `GameCollection` data
+///     - output overview of `GameCollection`
+///     - output `Game`s (all `Game`s in collection, a `Game` at a given index in the collection or a given slice (~= array) of `Game`s))
+///
 impl GameCollection {
     // constructor
+    /// returns empty `GameCollection`
     pub fn new() -> GameCollection {
         GameCollection {
             name: None,
@@ -101,13 +114,11 @@ impl GameCollection {
 
         Some(games)
     }
-
     pub fn len(&self) -> usize {
         self.games.len()
     }
 
     // updating games (setters)
-    /// index, new_title
     pub fn update_game_title_at_index(&mut self, index: usize, new_title: Option<String>) -> Result<(), Box<dyn Error>> {
         if index >= self.games.len() {
             return Err(format!("Cannot update game at index {} of game collection with {} games", index, self.games.len()).into());
@@ -172,7 +183,7 @@ impl GameCollection {
     // remove games
     pub fn remove_game_at_index(&mut self, index: usize) -> Result<(), Box<dyn Error>> {
         if index >= self.games.len() {
-            return Err(format!("Cannot update game at index {} of game collection with {} games", index, self.games.len()).into());
+            return Err(format!("Cannot remove game at index {} of game collection with {} games", index, self.games.len()).into());
         }
 
         self.games.remove(index);
