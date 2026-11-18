@@ -92,4 +92,13 @@ impl Game {
             }
         }
     }
+
+    pub fn print_empty() {
+        println!("0\tTitle\t\t:\t{}", EMPTY_GAME_ATTRIBUTE_STR);
+        println!("1\tGenre\t\t:\t{}", EMPTY_GAME_ATTRIBUTE_STR);
+        println!("2\tPublisher\t:\t{}", EMPTY_GAME_ATTRIBUTE_STR);
+        println!("3\tDeveloper\t:\t{}", EMPTY_GAME_ATTRIBUTE_STR);
+        println!("4\tPlatform\t:\t{}", EMPTY_GAME_ATTRIBUTE_STR);
+        println!("5\tPersonal Rating\t:\t{}", EMPTY_GAME_ATTRIBUTE_STR);
+    }
 }

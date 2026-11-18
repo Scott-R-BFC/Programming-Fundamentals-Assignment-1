@@ -20,44 +20,86 @@ impl GameCollection {
     }
 
     // getters
-    pub fn get_games_with_title(&self, title: &str) -> Vec<&Game> {
-        self.games
+    pub fn get_games_with_title(&self, title: &str) -> Option<Vec<&Game>> {
+        let games: Vec<&Game> = self
+            .games
             .iter()
             .filter(|game| game.get_title() == Some(title))
-            .collect()
+            .collect();
+
+        if games.len() == 0 {
+            return None;
+        }
+
+        Some(games)
     }
-    pub fn get_games_with_genre(&self, genre: &str) -> Vec<&Game> {
-        self.games
+    pub fn get_games_with_genre(&self, genre: &str) -> Option<Vec<&Game>> {
+        let games: Vec<&Game> = self
+            .games
             .iter()
             .filter(|game| game.get_genre() == Some(genre))
-            .collect()
+            .collect();
+
+        if games.len() == 0 {
+            return None;
+        }
+
+        Some(games)
     }
-    pub fn get_games_with_publisher(&self, publisher: &str) -> Vec<&Game> {
-        self.games
+    pub fn get_games_with_publisher(&self, publisher: &str) -> Option<Vec<&Game>> {
+        let games: Vec<&Game> = self
+            .games
             .iter()
             .filter(|game| game.get_publisher() == Some(publisher))
-            .collect()
+            .collect();
+
+        if games.len() == 0 {
+            return None;
+        }
+
+        Some(games)
     }
-    pub fn get_games_with_developer(&self, developer: &str) -> Vec<&Game> {
-        self.games
+    pub fn get_games_with_developer(&self, developer: &str) -> Option<Vec<&Game>> {
+        let games: Vec<&Game> = self
+            .games
             .iter()
             .filter(|game| game.get_developer() == Some(developer))
-            .collect()
+            .collect();
+
+        if games.len() == 0 {
+            return None;
+        }
+
+        Some(games)
     }
-    pub fn get_games_with_platform(&self, platform: &str) -> Vec<&Game> {
-        self.games
+    pub fn get_games_with_platform(&self, platform: &str) -> Option<Vec<&Game>> {
+        let games: Vec<&Game> = self
+            .games
             .iter()
             .filter(|game| game.get_platform() == Some(platform))
-            .collect()
+            .collect();
+
+        if games.len() == 0 {
+            return None;
+        }
+
+        Some(games)
     }
-    pub fn get_games_with_rating_in_range(&self, rating_range: std::ops::Range<Rating>) -> Vec<&Game> {
-        self.games
+    pub fn get_games_with_rating_in_range(&self, rating_range: std::ops::Range<Rating>) -> Option<Vec<&Game>> {
+        let games: Vec<&Game> = self
+            .games
             .iter()
             .filter(|game| {
                 game.get_personal_rating()
                     .is_some_and(|rating| rating_range.contains(&rating))
             })
-            .collect()
+            .collect();
+
+        if games.len() == 0 {
+            return None;
+        }
+
+        Some(games)
     }
 
     pub fn len(&self) -> usize {
@@ -163,6 +205,12 @@ impl GameCollection {
         for i in 0..self.games.len() {
             println!("Game Collection Number {}", i);
             self.games[i].print();
+        }
+    }
+    pub fn print_game_slice(game_slice: &[&Game]) {
+        for i in 0..game_slice.len() {
+            println!("Game Selection Number {}", i);
+            game_slice[i].print();
         }
     }
     pub fn print_game_at_index(&self, index: usize) {

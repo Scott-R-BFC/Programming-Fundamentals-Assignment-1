@@ -4,8 +4,8 @@ use crate::rating::Rating;
 
 use std::error::Error;
 
-const INPUT_ABORT_STR: &str = "abort!";
-const UPDATE_ALL_ATTRIBUTES_STR: &str = "all!";
+const ABORT_COMMAND: &str = "abort!";
+const ALL_COMMAND: &str = "all!";
 const MAX_INPUT_ATTEMPTS: usize = 3;
 
 enum Operation {
@@ -21,39 +21,112 @@ struct OperationData {
 }
 
 enum InputFunction {
-    StringInput(fn(&str) -> Result<Input<String>, Box<dyn Error>>),
-    RatingInput(fn(&str) -> Result<Input<Rating>, Box<dyn Error>>),
+    String(fn(&str) -> Result<Input<String>, Box<dyn Error>>),
+    Rating(fn(&str) -> Result<Input<Rating>, Box<dyn Error>>),
 }
+
 enum UpdateFunction {
-    StringUpdate(fn(&mut GameCollection, usize, Option<String>) -> Result<(), Box<dyn Error>>),
-    RatingUpdate(fn(&mut GameCollection, usize, Option<Rating>) -> Result<(), Box<dyn Error>>),
+    String(fn(&mut GameCollection, usize, Option<String>) -> Result<(), Box<dyn Error>>),
+    Rating(fn(&mut GameCollection, usize, Option<Rating>) -> Result<(), Box<dyn Error>>),
+}
+
+enum GetGamesWithAttributeFunction {
+    String(for<'a> fn(&'a GameCollection, &str) -> Option<Vec<&'a Game>>),
+    Rating(for<'a> fn(&'a GameCollection, std::ops::Range<Rating>) -> Option<Vec<&'a Game>>),
 }
 
 struct AttributeData {
     name: &'static str,
     input_function: InputFunction,
     update_function: UpdateFunction,
+    get_games_function: GetGamesWithAttributeFunction,
 }
 
 const ATTRIBUTES: &[AttributeData] = &[
-    AttributeData { name: "title", input_function: InputFunction::StringInput(input_string), update_function: UpdateFunction::StringUpdate(GameCollection::update_game_title_at_index) },
-    AttributeData { name: "genre", input_function: InputFunction::StringInput(input_string), update_function: UpdateFunction::StringUpdate(GameCollection::update_game_genre_at_index) },
-    AttributeData { name: "publisher", input_function: InputFunction::StringInput(input_string), update_function: UpdateFunction::StringUpdate(GameCollection::update_game_publisher_at_index) },
-    AttributeData { name: "developer", input_function: InputFunction::StringInput(input_string), update_function: UpdateFunction::StringUpdate(GameCollection::update_game_developer_at_index) },
-    AttributeData { name: "platform", input_function: InputFunction::StringInput(input_string), update_function: UpdateFunction::StringUpdate(GameCollection::update_game_platform_at_index) },
-    AttributeData { name: "personal rating", input_function: InputFunction::RatingInput(input_rating), update_function: UpdateFunction::RatingUpdate(GameCollection::update_game_personal_rating_at_index) },
+    AttributeData {
+        name: "title",
+        input_function: InputFunction::String(input_string),
+        update_function: UpdateFunction::String(GameCollection::update_game_title_at_index),
+        get_games_function: GetGamesWithAttributeFunction::String(GameCollection::get_games_with_title),
+    },
+    AttributeData {
+        name: "genre",
+        input_function: InputFunction::String(input_string),
+        update_function: UpdateFunction::String(GameCollection::update_game_genre_at_index),
+        get_games_function: GetGamesWithAttributeFunction::String(GameCollection::get_games_with_genre),
+    },
+    AttributeData {
+        name: "publisher",
+        input_function: InputFunction::String(input_string),
+        update_function: UpdateFunction::String(GameCollection::update_game_publisher_at_index),
+        get_games_function: GetGamesWithAttributeFunction::String(GameCollection::get_games_with_publisher),
+    },
+    AttributeData {
+        name: "developer",
+        input_function: InputFunction::String(input_string),
+        update_function: UpdateFunction::String(GameCollection::update_game_developer_at_index),
+        get_games_function: GetGamesWithAttributeFunction::String(GameCollection::get_games_with_developer),
+    },
+    AttributeData {
+        name: "platform",
+        input_function: InputFunction::String(input_string),
+        update_function: UpdateFunction::String(GameCollection::update_game_platform_at_index),
+        get_games_function: GetGamesWithAttributeFunction::String(GameCollection::get_games_with_platform),
+    },
+    AttributeData {
+        name: "personal rating",
+        input_function: InputFunction::Rating(input_rating),
+        update_function: UpdateFunction::Rating(GameCollection::update_game_personal_rating_at_index),
+        get_games_function: GetGamesWithAttributeFunction::Rating(GameCollection::get_games_with_rating_in_range),
+    },
 ];
 
 const OPERATIONS: &[OperationData] = &[
-    OperationData { shortcut: "q",   description: "exit program",              operation: Operation::Exit },
-    OperationData { shortcut: "vco", description: "view collection overview",  operation: Operation::Immutable(GameCollectionTracker::view_overview) }, 
-    OperationData { shortcut: "ucn", description: "update collection name",    operation: Operation::Mutable(GameCollectionTracker::update_collection_name) },
-    OperationData { shortcut: "uco", description: "update collection owner",   operation: Operation::Mutable(GameCollectionTracker::update_collection_owner) },
-    OperationData { shortcut: "vag", description: "view all games",            operation: Operation::Immutable(GameCollectionTracker::view_all_games) },
-    OperationData { shortcut: "vga", description: "view games with attribute", operation: Operation::Immutable(GameCollectionTracker::view_games_with_attribute) },
-    OperationData { shortcut: "add", description: "add game",                  operation: Operation::Mutable(GameCollectionTracker::add_game) },
-    OperationData { shortcut: "upd", description: "update game",               operation: Operation::Mutable(GameCollectionTracker::update_game) },
-    OperationData { shortcut: "rem", description: "remove game",               operation: Operation::Mutable(GameCollectionTracker::remove_game) },
+    OperationData {
+        shortcut: "q",
+        description: "exit program",
+        operation: Operation::Exit,
+    },
+    OperationData {
+        shortcut: "vco",
+        description: "view collection overview",
+        operation: Operation::Immutable(GameCollectionTracker::view_overview),
+    },
+    OperationData {
+        shortcut: "ucn",
+        description: "update collection name",
+        operation: Operation::Mutable(GameCollectionTracker::update_collection_name),
+    },
+    OperationData {
+        shortcut: "uco",
+        description: "update collection owner",
+        operation: Operation::Mutable(GameCollectionTracker::update_collection_owner),
+    },
+    OperationData {
+        shortcut: "vag",
+        description: "view all games",
+        operation: Operation::Immutable(GameCollectionTracker::view_all_games),
+    },
+    OperationData {
+        shortcut: "vga",
+        description: "view games with attribute",
+        operation: Operation::Immutable(GameCollectionTracker::view_games_with_attribute),
+    },
+    OperationData {
+        shortcut: "add",
+        description: "add game",
+        operation: Operation::Mutable(GameCollectionTracker::add_game),
+    },
+    OperationData {
+        shortcut: "upd",
+        description: "update game",
+        operation: Operation::Mutable(GameCollectionTracker::update_game),
+    },
+    OperationData {
+        shortcut: "rem",
+        description: "remove game",
+        operation: Operation::Mutable(GameCollectionTracker::remove_game),
+    },
 ];
 
 enum Input<T> {
@@ -86,7 +159,7 @@ fn input_string(prompt_str: &str) -> Result<Input<String>, Box<dyn Error>> {
 
     let out_string = out_string.trim().to_string();
 
-    if out_string == INPUT_ABORT_STR {
+    if out_string == ABORT_COMMAND {
         return Ok(Input::Abort);
     }
     if out_string == "" {
@@ -173,7 +246,7 @@ impl GameCollectionTracker {
 
         loop {
             println!("Select Game.");
-            println!("To abort, enter \"{}\".", INPUT_ABORT_STR);
+            println!("To abort, enter \"{}\".", ABORT_COMMAND);
             self.game_collection.print_games();
 
             match input_usize_in_range(format!("Enter Game Collection Number (in the inclusive range {} .. {}): ", 0, n_games - 1).as_str(), 0..n_games)? {
@@ -192,16 +265,20 @@ impl GameCollectionTracker {
         }
     }
 
-    fn input_select_attribute(&self, game_index: usize) -> Result<Option<String>, Box<dyn Error>> {
+    fn input_select_attribute(game: Option<(&GameCollection, usize)>) -> Result<Option<String>, Box<dyn Error>> {
         let mut select_attribute_prompt_count: usize = 0;
 
         loop {
             println!("Select Attribute:\n");
-            println!("To select all attributes, enter \"{}\".", UPDATE_ALL_ATTRIBUTES_STR);
-            println!("To abort, enter \"{}\".", INPUT_ABORT_STR);
+            println!("To select all attributes, enter \"{}\".", ALL_COMMAND);
+            println!("To abort, enter \"{}\".", ABORT_COMMAND);
             println!("Attribute...");
             println!("Number\tName\t\t:\tValue");
-            self.game_collection.print_game_at_index(game_index);
+
+            match game {
+                Some((collection, game_index)) => collection.print_game_at_index(game_index),
+                None => Game::print_empty(),
+            }
 
             match input_string("Enter Attribute Number or Attribute Name: ")? {
                 Input::Value(option) => match option {
@@ -238,7 +315,7 @@ impl GameCollectionTracker {
     pub fn add_game(&mut self) -> Result<(), Box<dyn Error>> {
         println!("");
         println!("Entering game details:");
-        println!("To abort, enter \"{}\".", INPUT_ABORT_STR);
+        println!("To abort, enter \"{}\".", ABORT_COMMAND);
 
         let title: Option<String> = match input_string("Enter Game Title: ")? {
             Input::Value(v) => v,
@@ -301,7 +378,7 @@ impl GameCollectionTracker {
             }
         };
 
-        let input: String = match self.input_select_attribute(game_index)? {
+        let input: String = match GameCollectionTracker::input_select_attribute(Some((&self.game_collection, game_index)))? {
             Some(v) => v.to_lowercase(),
             None => {
                 print_abort_operation();
@@ -309,22 +386,20 @@ impl GameCollectionTracker {
             }
         };
 
-        println!("To abort, enter \"{}\".", INPUT_ABORT_STR);
-        let update_all_attributes = input == UPDATE_ALL_ATTRIBUTES_STR;
+        println!("To abort, enter \"{}\".", ABORT_COMMAND);
+        let update_all_attributes = input == ALL_COMMAND;
 
         for (i, attribute) in ATTRIBUTES.iter().enumerate() {
-            if !update_all_attributes &&
-                input != i.to_string() && 
-                input != attribute.name {
-                    continue;
+            if !update_all_attributes && input != i.to_string() && input != attribute.name {
+                continue;
             }
 
             match attribute.update_function {
-                UpdateFunction::StringUpdate(update_function) => update_function(
+                UpdateFunction::String(update_function) => update_function(
                     &mut self.game_collection,
                     game_index,
                     match attribute.input_function {
-                        InputFunction::StringInput(input_function) => match input_function(format!("Enter updated {}: ", attribute.name).as_str())? {
+                        InputFunction::String(input_function) => match input_function(format!("Enter updated {}: ", attribute.name).as_str())? {
                             Input::Value(v) => v,
                             Input::Abort => {
                                 print_abort_operation();
@@ -335,13 +410,13 @@ impl GameCollectionTracker {
                             print_abort_operation();
                             return Err("Input function other than string input called to update string attribute".into());
                         }
-                    }
+                    },
                 )?,
-                UpdateFunction::RatingUpdate(update_function) => update_function(
+                UpdateFunction::Rating(update_function) => update_function(
                     &mut self.game_collection,
                     game_index,
                     match attribute.input_function {
-                        InputFunction::RatingInput(input_function) => match input_function(format!("Enter updated {}: ", attribute.name).as_str())? {
+                        InputFunction::Rating(input_function) => match input_function(format!("Enter updated {}: ", attribute.name).as_str())? {
                             Input::Value(v) => v,
                             Input::Abort => {
                                 print_abort_operation();
@@ -352,10 +427,9 @@ impl GameCollectionTracker {
                             print_abort_operation();
                             return Err("Input function other than string input called to update string attribute".into());
                         }
-                    }
+                    },
                 )?,
             }
-
         }
 
         Ok(())
@@ -430,10 +504,8 @@ impl GameCollectionTracker {
             let mut valid_input: bool = false;
 
             for (i, operation_data) in OPERATIONS.iter().enumerate() {
-                if input != i.to_string()
-                    && input != operation_data.shortcut 
-                        && input != operation_data.description { 
-                            continue; 
+                if input != i.to_string() && input != operation_data.shortcut && input != operation_data.description {
+                    continue;
                 }
 
                 valid_input = true;
@@ -443,7 +515,6 @@ impl GameCollectionTracker {
                     Operation::Immutable(op) => op(self)?,
                     Operation::Mutable(op) => op(self)?,
                 }
-
             }
 
             if !valid_input {
@@ -465,7 +536,6 @@ impl GameCollectionTracker {
         for (i, operation_data) in OPERATIONS.iter().enumerate() {
             println!("{}.\t{}\t{}", i, operation_data.shortcut, operation_data.description);
         }
-
     }
 
     pub fn view_overview(&self) -> Result<(), Box<dyn Error>> {
@@ -483,8 +553,70 @@ impl GameCollectionTracker {
     }
 
     pub fn view_games_with_attribute(&self) -> Result<(), Box<dyn Error>> {
-        println!("\nNot Implemented Yet.");
+        println!("Viewing Games with Selected Attribute");
 
+        let input: String = match GameCollectionTracker::input_select_attribute(None)? {
+            Some(v) => v.to_lowercase(),
+            None => {
+                print_abort_operation();
+                return Ok(());
+            }
+        };
+
+        let mut valid_games: Vec<&Game> = Vec::new();
+        
+        if input == ALL_COMMAND {
+            self.view_all_games()?;
+            return Ok(());
+        }
+
+        for (i, attribute) in ATTRIBUTES.iter().enumerate() {
+            if input != i.to_string() && input != attribute.name {
+                continue;
+            }
+
+            let games_with_attribute: Option<Vec<&Game>> = match attribute.get_games_function {
+                GetGamesWithAttributeFunction::String(get_games) => {
+                    let value = match input_string("Enter Attribute Value: ")? {
+                        Input::Value(Some(v)) => v,
+                        _ => {
+                            print_abort_operation();
+                            return Ok(());
+                        }
+                    };
+
+                    get_games(&self.game_collection, &value)
+                },
+                GetGamesWithAttributeFunction::Rating(get_games) => {
+                    let lower_bound = match input_rating("Enter Rating Lower Bound: ")? {
+                        Input::Value(Some(v)) => v,
+                        _ => {
+                            print_abort_operation();
+                            return Ok(());
+                        },
+                    };
+
+                    let upper_bound = match input_rating("Enter Rating Lower Bound: ")? {
+                        Input::Value(Some(v)) => v,
+                        _ => {
+                            print_abort_operation();
+                            return Ok(());
+                        },
+                    };
+
+                    get_games(&self.game_collection, lower_bound..upper_bound)
+                },
+            };
+
+            match games_with_attribute {
+                Some(games) => valid_games.extend(games),
+                None => { println!("No Games with Matching Attribute"); }
+            }
+        }
+
+        GameCollection::print_game_slice(&valid_games);
+
+        println!("{}", input);
         Ok(())
     }
 }
