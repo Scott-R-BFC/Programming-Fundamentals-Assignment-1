@@ -149,7 +149,8 @@ const OPERATIONS: &[OperationData] = &[
 ];
 
 /// create the effect of a cleared console with an ANSI escape sequences
-/// clear console & move cursor to start
+///
+/// (clear console & move cursor to start)
 fn clear_console() {
     print!("\x1B[2J");
     print!("\x1b[1;1H");
@@ -192,8 +193,11 @@ fn input_string(prompt_str: &str) -> Result<Input<String>, Box<dyn Error>> {
 }
 
 /// attempts to convert value from `input_string()` to `Rating`
+///
 /// until conversion fails a number of times greater than `MAX_INPUT_ATTEMPTS`
+///
 /// or `ABORT_COMMAND` is entered
+///
 /// in which case `Input::Abort` is returned
 fn input_rating(prompt_str: &str) -> Result<Input<Rating>, Box<dyn Error>> {
     let mut attempt_counter: usize = 0;
@@ -219,8 +223,11 @@ fn input_rating(prompt_str: &str) -> Result<Input<Rating>, Box<dyn Error>> {
 }
 
 /// attempts to convert value from `input_string()` to `usize` within a given range
+///
 /// until conversion fails a number of times greater than `MAX_INPUT_ATTEMPTS`
+///
 /// or `ABORT_COMMAND` is entered
+///
 /// in which case `Input::Abort` is returned
 fn input_usize_in_range(prompt_str: &str, range: std::ops::Range<usize>) -> Result<Input<usize>, Box<dyn Error>> {
     let mut attempt_counter: usize = 0;
@@ -359,6 +366,7 @@ impl GameCollectionTracker {
 
     // update collection data
     /// prompts user to enter a value for each of the `Game` attributes to be added to the
+    ///
     /// `GameCollection` until either
     /// - all attribute values successfully entered
     /// - the `ABORT_COMMAND` is entered
@@ -419,8 +427,11 @@ impl GameCollectionTracker {
     }
 
     /// prompts user to select a `Game` in the `GameCollection`
+    ///
     /// then prompts user to select a `Game` attribute
+    ///
     /// then prompts user to input a new value for the selected attribute
+    ///
     /// then updates the selected attribute
     pub fn update_game(&mut self) -> Result<(), Box<dyn Error>> {
         println!("");
@@ -548,8 +559,11 @@ impl GameCollectionTracker {
 
     // io loop
     /// prompts user to select an `Operation` to be performed
+    ///
     /// informs the user if their input doesn't select an `Operation`
+    ///
     /// leads to the end of the program if `Operation::Exit` is selected
+    ///
     /// otherwise performs the Operation
     pub fn menu_loop(&mut self) -> Result<(), Box<dyn Error>> {
         'main: loop {
@@ -619,8 +633,10 @@ impl GameCollectionTracker {
     }
 
     /// prompts user to select an attribute
+    ///
     /// then prompts user to input an attribute value(s) to select `Game`'s who's attributes match the
     /// inputted value(s)
+    ///
     /// outputs each `Game` in the `GameCollection` where the `Game` has attributes matching the
     /// user's selection
     pub fn view_games_with_attribute(&self) -> Result<(), Box<dyn Error>> {

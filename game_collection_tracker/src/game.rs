@@ -3,6 +3,7 @@ use crate::rating::Rating;
 const EMPTY_GAME_ATTRIBUTE_STR: &str = "not specified";
 
 /// Stores game record information
+///
 /// Member variables are optional
 pub struct Game {
     title: Option<String>,
@@ -14,6 +15,7 @@ pub struct Game {
 }
 
 /// Implements methods for the `Game` class
+///
 /// Includes methods for:
 /// - constructing `Game` objects
 /// - getting `Game` object member variables
