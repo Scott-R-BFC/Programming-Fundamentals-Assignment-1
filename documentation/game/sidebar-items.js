@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["EMPTY_GAME_ATTRIBUTE_STR"],"struct":["Game"]};
