@@ -1,11 +1,12 @@
 const RATING_RANGE: std::ops::RangeInclusive<f32> = 0.0..=10.0;
 
 /// Rating 'inherits' these 'traits from f32
-/// Debug defines printing with println!("{:?}", rating_var);
-/// Clone defines creation of a copy with rating_var.clone();
-/// Copy gives copy semantics instead of move semantics
-/// PartialEq and PartialOrd define equality and comparison operators
-/// f32 limited between 0.0 and 10.0
+/// - Debug: defines printing with println!("{:?}", rating_var);
+/// - Clone: defines creation of a copy with rating_var.clone();
+/// - Copy: gives copy semantics instead of move semantics
+/// - PartialEq and PartialOrd: define equality and comparison operators
+///
+/// Rating is a subset of f32 limited to the range [RATING_RANGE]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Rating(f32);
 

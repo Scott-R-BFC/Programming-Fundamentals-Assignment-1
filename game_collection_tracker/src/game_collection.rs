@@ -11,19 +11,19 @@ pub struct GameCollection {
 }
 
 /// provides methods for the following:
-/// - constructing new `GameCollection`
-/// - viewing `GameCollection` data
-/// - updating `GameCollection` data
-///     - changing specific `Game`'s attributes
-///     - removing specific `Game`
-///     - adding new `Game` (to end or at specific index in collection)
-/// - outputting `GameCollection` data
-///     - output overview of `GameCollection`
-///     - output `Game`s (all `Game`s in collection, a `Game` at a given index in the collection or a given slice (~= array) of `Game`s))
+/// - constructing new GameCollection
+/// - viewing GameCollection data
+/// - updating GameCollection data
+///     - changing specific [Game]'s attributes
+///     - removing specific [Game]
+///     - adding new [Game] (to end or at specific index in collection)
+/// - outputting GameCollection data
+///     - output overview of GameCollection
+///     - output [Game]s (all [Game]s in collection, a [Game] at a given index in the collection or a given slice (~= array) of [Game]s))
 ///
 impl GameCollection {
     // constructor
-    /// returns empty `GameCollection`
+    /// returns empty GameCollection
     pub fn new() -> GameCollection {
         GameCollection {
             name: None,

@@ -1,6 +1,8 @@
 //! # Game Collection Tracker
 //!
-//! The program instantiates a `GameCollectionTracker` and calls its `menu_loop` method.
+//! #### Program Info
+//!
+//! The program entry point is [main] which instantiates a [game_collection_tracker::GameCollectionTracker] and calls its [game_collection_tracker::GameCollectionTracker::menu_loop] method.
 //! This method allows the user to perform the operations defined in the high level requirements
 //! section of the accompanying assignment document.
 //!
@@ -9,16 +11,20 @@
 //! input validation and error handling; logical, maintainable and scalable code and meaningful
 //! internal code comments.
 //!
-//! Below is the documentation for the modules used to build the program.
+//! When the [game_collection_tracker::GameCollectionTracker::menu_loop] has been executed, the
+//! program terminates
 //!
-//! Each `module` contains relevant constant definitions, a `struct` whose name aligns with the
+//!
+//! #### Module Info
+//!
+//! Each module contains relevant constant definitions, a `struct` whose name aligns with the
 //! module and an `impl` block which provides implementation of the `struct`'s methods.
 //!
-//! The `GameCollectionTracker` module also contains two tables describing data and functions
+//! The [game_collection_tracker] module also contains two tables describing data and functions
 //! associated with:
 //! - operations the user can select from the menu
-//! - attributes associated with a `Game`
-//! - retrieving `Game`s from a `GameCollection`
+//! - attributes associated with a [game::Game]
+//! - retrieving [game::Game]s from a [game_collection::GameCollection]
 
 #![allow(dead_code)]
 
@@ -29,7 +35,7 @@ mod rating;
 
 use game_collection_tracker::GameCollectionTracker;
 
-/// program entry point
+/// Program entry point: Executes IO loop as described in [Game Collection Tracker](##irogram-info).
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     GameCollectionTracker::new().menu_loop()
 }
