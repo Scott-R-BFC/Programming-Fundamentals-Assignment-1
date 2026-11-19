@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["ABORT_COMMAND","ALL_COMMAND","ATTRIBUTES","MAX_INPUT_ATTEMPTS","OPERATIONS"],"enum":["GetGamesWithAttributeFunction","Input","InputFunction","Operation","UpdateFunction"],"fn":["await_return","clear_console","input_rating","input_string","input_usize_in_range","print_abort_operation"],"struct":["AttributeData","GameCollectionTracker","OperationData"]};
+window.SIDEBAR_ITEMS = {"fn":["main"],"mod":["game","game_collection","game_collection_tracker","rating"]};
