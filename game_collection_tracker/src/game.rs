@@ -116,3 +116,63 @@ impl Game {
         println!("5\tPersonal Rating\t:\t{}", EMPTY_GAME_ATTRIBUTE_STR);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn construct_full_game() -> Game {
+        Game::new(
+            Some("Minecraft".to_string()),
+            Some("Sandbox".to_string()),
+            Some("Microsoft".to_string()),
+            Some("Mojang".to_string()),
+            Some("Multiplatform".to_string()),
+            Rating::from(9.0).ok(),
+        )
+    }
+
+    #[test]
+    fn constructor_and_getters() {
+        let full_game = construct_full_game();
+        assert_eq!(full_game.title, Some("Minecraft".to_string()));
+        assert_eq!(full_game.genre, Some("Sandbox".to_string()));
+        assert_eq!(full_game.publisher, Some("Microsoft".to_string()));
+        assert_eq!(full_game.developer, Some("Mojang".to_string()));
+        assert_eq!(full_game.platform, Some("Multiplatform".to_string()));
+        assert_eq!(full_game.personal_rating, Rating::from(9.0).ok());
+
+        let empty_game = Game::empty();
+        assert_eq!(empty_game.title, None);
+        assert_eq!(empty_game.genre, None);
+        assert_eq!(empty_game.publisher, None);
+        assert_eq!(empty_game.developer, None);
+        assert_eq!(empty_game.platform, None);
+        assert_eq!(empty_game.personal_rating, None);
+    }
+
+    #[test]
+    fn setters() {
+        let mut full_game = construct_full_game();
+        let mut empty_game = Game::empty();
+
+        empty_game.set_title(Some("Minecraft".to_string()));
+        empty_game.set_genre(Some("Sandbox".to_string()));
+        full_game.set_publisher(None);
+        full_game.set_developer(None);
+        empty_game.set_platform(Some("Multiplatform".to_string()));
+        empty_game.set_personal_rating(Rating::from(9.0).ok());
+
+        assert_eq!(empty_game.title, full_game.title);
+        assert_eq!(empty_game.genre, full_game.genre);
+        assert_eq!(empty_game.publisher, full_game.publisher);
+        assert_eq!(empty_game.developer, full_game.developer);
+        assert_eq!(empty_game.platform, full_game.platform);
+        assert_eq!(empty_game.personal_rating, full_game.personal_rating);
+    }
+    
+    //TODO
+    //Test print methods by extracting out formatting to helper function
+    //& just printing the formatted string it returns
+    //auto test helper function & manual test display
+}

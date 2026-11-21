@@ -1,3 +1,4 @@
+use std::error::Error;
 const RATING_RANGE: std::ops::RangeInclusive<f32> = 0.0..=10.0;
 
 /// Rating 'inherits' these 'traits from f32
@@ -27,11 +28,40 @@ impl std::fmt::Display for Rating {
 impl Rating {
     /// Returns a `Result` which contains a `Rating` or an `Error` based on if the provided `f32`
     /// is within the range of the rating
-    pub fn from(value: f32) -> Result<Rating, Box<dyn std::error::Error>> {
-        if RATING_RANGE.contains(&value) {
+    pub fn from(value: f32) -> Result<Rating, Box<dyn Error>> {
+        if !RATING_RANGE.contains(&value) {
             return Err("Cannot create new Rating with invalid value. Value must be in range 0.0 ..= 10.0".into());
         }
 
         Ok(Rating(value))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rating_from_below_range() {
+        assert!(Rating::from(RATING_RANGE.start() - 1.0).is_err());
+    }
+
+    #[test]
+    fn rating_from_above_range() {
+        assert!(Rating::from(RATING_RANGE.end() + 1.0).is_err());
+    }
+
+    #[test]
+    fn rating_from_lower_bound() {
+        let _ = Rating::from(*RATING_RANGE.start());
+    }
+
+    #[test]
+    fn rating_from_upper_bound() {
+        let _ = Rating::from(*RATING_RANGE.end());
+    }
+
+    fn rating_from_within_range() {
+        let _ = Rating::from((RATING_RANGE.start() + RATING_RANGE.end()) / 2.0);
     }
 }
